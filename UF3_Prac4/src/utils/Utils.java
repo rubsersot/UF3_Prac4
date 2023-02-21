@@ -806,6 +806,14 @@ public class Utils {
         return raf;
     }
     
+    public static void moverPuntero(RandomAccessFile raf, long posicionMover){
+        try {
+            raf.seek(posicionMover);
+        } catch (IOException ex) {
+            Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     // <editor-fold>
     
 // </editor-fold>
