@@ -111,7 +111,13 @@ public class UF3_Prac4{
     private static void guardarIndex(Clients cli){
         DataOutputStream dos = Utils.AbrirFicheroEscrituraBinario(NOM_FITX_INDEX, true, true);
         RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
-        dos.writeInt(cli.codi);
+        try {
+            dos.writeInt(cli.codi);
+            long posicio = raf.getFilePointer();
+            dos.writeLong(posicio);
+        } catch (IOException ex) {
+            Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     private static boolean existeixClient(int codi){
@@ -223,7 +229,50 @@ public class UF3_Prac4{
     }
     
     private static void posicioDirecte(){
-        int posicio = Utils.LlegirInt("Introdueix la posició del client");
+        int posicio = Utils.LlegirInt("Introdueix la posició del client: ");
+        DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_INDEX, true);
+        RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
+        
+        int contador = 0;
+        boolean trobat = false;
+        leerCodigoIndice(dis);
+        long posIndice = leerPosicionIndice(dis);
+        while(!trobat && posIndice > -1){
+            if(contador == posicio){
+                Utils.moverPuntero(raf, posIndice);
+                Clients cli = new Clients();
+                leerCliente(dis, cli);
+                mostrarDades(cli);
+                trobat = true;
+            }
+            ++contador;
+            leerCodigoIndice(dis);
+            posIndice = leerPosicionIndice(dis);
+        }
+    }
+    
+    private static int leerCodigoIndice(DataInputStream dis){
+        int codi;
+        
+        try {
+            codi = dis.readInt();
+        } catch (IOException ex) {
+            codi = Integer.MIN_VALUE;
+        }
+        
+        return codi;
+    }
+    
+    private static long leerPosicionIndice(DataInputStream dis){
+        long posicion;
+        
+        try {
+            posicion = dis.readLong();
+        } catch (IOException ex) {
+            posicion = -1;
+        }
+        
+        return posicion;
     }
     
     private static void consultarClientCodi(){
