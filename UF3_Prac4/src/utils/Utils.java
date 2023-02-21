@@ -16,6 +16,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -792,6 +793,20 @@ public class Utils {
     }
     
     // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc="Accés Aleatori">
+    
+    public static RandomAccessFile AbrirAccesoDirecto(String nomFitxer, String mode){
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(nomFitxer, mode);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return raf;
+    }
+    
+    // <editor-fold>
     
 // </editor-fold>
     

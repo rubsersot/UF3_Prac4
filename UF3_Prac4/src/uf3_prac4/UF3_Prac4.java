@@ -3,6 +3,7 @@ package uf3_prac4;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,6 +26,7 @@ public class UF3_Prac4{
     public static Scanner scan = new Scanner(System.in);
     static String NOM_FITX_BIN = "clients.bin";
     static String NOM_FITX_TEMP = "temporal.bin";
+    static String NOM_FITX_INDEX = "clients_index.bin";
     
     public static void main(String[] args) {
         Utils.AbrirFichero(NOM_FITX_BIN, true);
@@ -58,6 +60,21 @@ public class UF3_Prac4{
                 case 6:
                     llistarClients();
                     break;
+                case 7:
+                    posicioDirecte();
+                    break;
+                case 8:
+                    
+                    break;
+                case 9:
+                    
+                    break;
+                case 10:
+                    
+                    break;
+                case 11:
+                    
+                    break;
                 default:
                     System.out.println("ERROR, opció no vàlida");
                     break;
@@ -76,13 +93,25 @@ public class UF3_Prac4{
         System.out.println("4. Modificar un client");
         System.out.println("5. Esborrar un client");
         System.out.println("6. Llistar tots els clients");
+        System.out.println("7. Accedir de forma directa per posició");
+        System.out.println("8. Accedir de forma directa per codi");
+        System.out.println("9. Esborrar registre sense reconstruir");
+        System.out.println("10. Modificar registre sense reconstruir");
+        System.out.println("11. Llistar els clients ordenats per codi");
         System.out.print("Introdueix una opció: ");
     }
     
     private static void altaClient(String nomFitxer){
         Clients client = new Clients();
         client = demanarDades(client);
+        guardarIndex(client);
         afegirDades(client, nomFitxer);
+    }
+    
+    private static void guardarIndex(Clients cli){
+        DataOutputStream dos = Utils.AbrirFicheroEscrituraBinario(NOM_FITX_INDEX, true, true);
+        RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
+        dos.writeInt(cli.codi);
     }
     
     private static boolean existeixClient(int codi){
@@ -191,6 +220,10 @@ public class UF3_Prac4{
                 leerCliente(dis, cli);
             }
         }
+    }
+    
+    private static void posicioDirecte(){
+        int posicio = Utils.LlegirInt("Introdueix la posició del client");
     }
     
     private static void consultarClientCodi(){
