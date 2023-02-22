@@ -386,7 +386,7 @@ public class UF3_Prac4 {
         Utils.RenombrarFichero(NOM_FITX_TEMP, NOM_FITX_BIN);
         Utils.BorrarFichero(NOM_FITX_TEMP);
     }
-
+    
     private static void modificarDirecte() {
         int codi = Utils.LlegirInt(DEMANAR_CODI);
         RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "rw");
@@ -396,6 +396,33 @@ public class UF3_Prac4 {
             Clients cli = new Clients();
             demanarDades(cli);
             escriureClient(raf, cli);
+            try {
+                raf.close();
+            } catch (IOException ex) {
+                Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        else{
+            System.out.println("No s'ha trobat un client amb aquest codi");
+        }
+    }
+
+    private static void esborrarDirecte() {
+        int codi = Utils.LlegirInt(DEMANAR_CODI);
+        RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "rw");
+        RandomAccessFile raf2 = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
+        if(existeixClient(codi)){
+            long posicio = buscarPosicion(codi);
+            Utils.moverPuntero(raf, posicio);
+            Utils.moverPuntero(raf2, posicio);
+            Clients cli = new Clients();
+            leerCliente(raf2, cli);
+            
+            leerCliente(raf2, cli);
+            while(cli != null){
+                
+                leerCliente(raf2, cli);
+            }
             try {
                 raf.close();
             } catch (IOException ex) {
