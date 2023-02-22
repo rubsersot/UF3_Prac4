@@ -79,6 +79,7 @@ public class UF3_Prac4{
                     System.out.println("ERROR, opció no vàlida");
                     break;
             }
+            actualitzarIndex();
             mostrarMenu();
             opcio = Utils.LlegirInt();
         }
@@ -104,20 +105,7 @@ public class UF3_Prac4{
     private static void altaClient(String nomFitxer){
         Clients client = new Clients();
         client = demanarDades(client);
-        guardarIndex(client);
         afegirDades(client, nomFitxer);
-    }
-    
-    private static void guardarIndex(Clients cli){
-        DataOutputStream dos = Utils.AbrirFicheroEscrituraBinario(NOM_FITX_INDEX, true, true);
-        RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
-        try {
-            dos.writeInt(cli.codi);
-            long posicio = raf.getFilePointer();
-            dos.writeLong(posicio);
-        } catch (IOException ex) {
-            Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
     
     private static boolean existeixClient(int codi){
@@ -150,6 +138,40 @@ public class UF3_Prac4{
             dos.writeUTF(client.email);
             dos.writeBoolean(client.vip);
             Utils.CerrarFicheroBinario(dos);
+        } catch (IOException ex) {
+            Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private static void actualitzarIndex(){
+        DataOutputStream dos = Utils.AbrirFicheroEscrituraBinario(NOM_FITX_INDEX, true, false);
+        RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "rw");
+        try {
+            long posicio = raf.getFilePointer();
+            while(posicio < raf.length()){
+                int codi = raf.readInt();
+                dos.writeInt(codi);
+                dos.writeLong(posicio);
+                leerResto(raf);
+                posicio = raf.getFilePointer();
+            }
+            
+        } catch (IOException ex) {
+            Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
+    
+    private static void leerResto(RandomAccessFile raf){
+        try {
+            raf.readUTF();
+            raf.readUTF();
+            raf.readInt();
+            raf.readInt();
+            raf.readInt();
+            raf.readUTF();
+            raf.readUTF();
+            raf.readBoolean();
         } catch (IOException ex) {
             Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -241,7 +263,8 @@ public class UF3_Prac4{
             if(contador == posicio){
                 Utils.moverPuntero(raf, posIndice);
                 Clients cli = new Clients();
-                leerCliente(dis, cli);
+                leerCodigo(raf);
+                leerCliente(raf, cli);
                 mostrarDades(cli);
                 trobat = true;
             }
@@ -336,6 +359,17 @@ public class UF3_Prac4{
         Utils.BorrarFichero(NOM_FITX_TEMP);
     }
     
+    private static Clients leerCodigo(RandomAccessFile raf){
+        Clients cli = new Clients();
+        
+        try {
+            cli.codi = raf.readInt();
+        } catch (IOException ex) {
+            cli = null;
+        }
+        return cli;
+    }
+    
     private static Clients leerCodigo(DataInputStream dis){
         Clients cli = new Clients();
         
@@ -345,6 +379,21 @@ public class UF3_Prac4{
             cli = null;
         }
         return cli;
+    }
+    
+    private static void leerCliente(RandomAccessFile raf, Clients cli){ 
+        try {
+            cli.nom = raf.readUTF();
+            cli.cognoms = raf.readUTF();
+            cli.diaNaixement = raf.readInt();
+            cli.mesNaixement = raf.readInt();
+            cli.anyNaixement = raf.readInt();
+            cli.adrecaPostal = raf.readUTF();
+            cli.email = raf.readUTF();
+            cli.vip = raf.readBoolean();
+        } catch (IOException ex) {
+            cli = null;
+        }
     }
     
     private static void leerCliente(DataInputStream dis, Clients cli){ 
