@@ -9,9 +9,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import utils.Utils;
 
-public class UF3_Prac4{
+public class UF3_Prac4 {
 
-    private static class Clients{
+    private static class Clients {
+
         int codi;
         String nom;
         String cognoms;
@@ -22,25 +23,27 @@ public class UF3_Prac4{
         String email;
         boolean vip;
     }
-    
+
     public static Scanner scan = new Scanner(System.in);
     static String NOM_FITX_BIN = "clients.bin";
     static String NOM_FITX_TEMP = "temporal.bin";
     static String NOM_FITX_INDEX = "clients_index.bin";
-    
+    static String DEMANAR_POSICIO = "Introdueix la posició del client (pos inicial = 0): ";
+    static String DEMANAR_CODI = "Introdueix el codi: ";
+
     public static void main(String[] args) {
         Utils.AbrirFichero(NOM_FITX_BIN, true);
-        
+
         mostrarMenu();
-        
+
         int opcio = Utils.LlegirInt();
         gestionarOpcions(opcio);
-        
+
         scan.close();
     }
-    
-    private static void gestionarOpcions(int opcio){
-        while(opcio != 0){
+
+    private static void gestionarOpcions(int opcio) {
+        while (opcio != 0) {
             switch (opcio) {
                 case 1:
                     altaClient(NOM_FITX_BIN);
@@ -64,16 +67,16 @@ public class UF3_Prac4{
                     posicioDirecte();
                     break;
                 case 8:
-                    
+                    codiDirecte();
                     break;
                 case 9:
-                    
+
                     break;
                 case 10:
-                    
+                    modificarDirecte();
                     break;
                 case 11:
-                    
+
                     break;
                 default:
                     System.out.println("ERROR, opció no vàlida");
@@ -84,8 +87,8 @@ public class UF3_Prac4{
             opcio = Utils.LlegirInt();
         }
     }
-    
-    private static void mostrarMenu(){
+
+    private static void mostrarMenu() {
         System.out.println("Menu");
         System.out.println("0. Sortir del programa");
         System.out.println("1. Alta d'un client");
@@ -101,14 +104,14 @@ public class UF3_Prac4{
         System.out.println("11. Llistar els clients ordenats per codi");
         System.out.print("Introdueix una opció: ");
     }
-    
-    private static void altaClient(String nomFitxer){
+
+    private static void altaClient(String nomFitxer) {
         Clients client = new Clients();
-        client = demanarDades(client);
+        demanarDades(client);
         afegirDades(client, nomFitxer);
     }
-    
-    private static boolean existeixClient(int codi){
+
+    private static boolean existeixClient(int codi) {
         boolean existeix = false;
         DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_BIN, true);
         Clients cli = leerCodigo(dis);
@@ -116,16 +119,15 @@ public class UF3_Prac4{
         while (cli != null && !existeix) {
             if (cli.codi == codi) {
                 existeix = true;
-            }
-            else{
+            } else {
                 cli = leerCodigo(dis);
                 leerCliente(dis, cli);
             }
         }
         return existeix;
     }
-    
-    private static void afegirDades(Clients client, String nomFitxer){
+
+    private static void afegirDades(Clients client, String nomFitxer) {
         try {
             DataOutputStream dos = Utils.AbrirFicheroEscrituraBinario(nomFitxer, true, true);
             dos.writeInt(client.codi);
@@ -142,27 +144,27 @@ public class UF3_Prac4{
             Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    private static void actualitzarIndex(){
+
+    private static void actualitzarIndex() {
         DataOutputStream dos = Utils.AbrirFicheroEscrituraBinario(NOM_FITX_INDEX, true, false);
         RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "rw");
         try {
             long posicio = raf.getFilePointer();
-            while(posicio < raf.length()){
+            while (posicio < raf.length()) {
                 int codi = raf.readInt();
                 dos.writeInt(codi);
                 dos.writeLong(posicio);
                 leerResto(raf);
                 posicio = raf.getFilePointer();
             }
-            
+
         } catch (IOException ex) {
             Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }
-    
-    private static void leerResto(RandomAccessFile raf){
+
+    private static void leerResto(RandomAccessFile raf) {
         try {
             raf.readUTF();
             raf.readUTF();
@@ -176,15 +178,14 @@ public class UF3_Prac4{
             Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    private static Clients demanarDades(Clients client){
-        client.codi = Utils.LlegirInt("Introdueix el codi: ");
+
+    private static void demanarDades(Clients client) {
+        client.codi = Utils.LlegirInt(DEMANAR_CODI);
         boolean valid = false;
-        while(!valid){
-            if(existeixClient(client.codi)){
+        while (!valid) {
+            if (existeixClient(client.codi)) {
                 client.codi = Utils.LlegirInt("ERROR! el client amb aquest codi ja existeix torna a introduir-lo: ");
-            }
-            else{
+            } else {
                 System.out.print("Introdueix el nom: ");
                 client.nom = scan.nextLine();
                 System.out.print("Introdueix els cognoms: ");
@@ -200,16 +201,14 @@ public class UF3_Prac4{
                 valid = true;
             }
         }
-        
-        return client;
     }
-    
-    private static boolean llegirVip(){
+
+    private static boolean llegirVip() {
         boolean vip = false;
         boolean valid = false;
         System.out.println("Introdueix si és VIP (si/no): ");
         String input = scan.nextLine();
-        while(!valid){
+        while (!valid) {
             switch (input) {
                 case "si":
                     vip = true;
@@ -225,42 +224,41 @@ public class UF3_Prac4{
                     break;
             }
         }
-        
+
         return vip;
     }
-    
-    private static void consultarClientPosicio(){
-        int posicio = Utils.LlegirInt("Introdueix la posició del client (pos inicial = 0): ");
+
+    private static void consultarClientPosicio() {
+        int posicio = Utils.LlegirInt(DEMANAR_POSICIO);
         int contador = 0;
         boolean trobat = false;
-        
+
         DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_BIN, true);
         Clients cli = leerCodigo(dis);
         leerCliente(dis, cli);
-        while(cli != null && !trobat){
-            if(contador == posicio){
+        while (cli != null && !trobat) {
+            if (contador == posicio) {
                 mostrarDades(cli);
                 trobat = true;
-            }
-            else{
+            } else {
                 ++contador;
                 cli = leerCodigo(dis);
                 leerCliente(dis, cli);
             }
         }
     }
-    
-    private static void posicioDirecte(){
-        int posicio = Utils.LlegirInt("Introdueix la posició del client: ");
+
+    private static void posicioDirecte() {
+        int posicio = Utils.LlegirInt(DEMANAR_POSICIO);
         DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_INDEX, true);
         RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
-        
+
         int contador = 0;
         boolean trobat = false;
         leerCodigoIndice(dis);
         long posIndice = leerPosicionIndice(dis);
-        while(!trobat && posIndice > -1){
-            if(contador == posicio){
+        while (!trobat && posIndice > -1) {
+            if (contador == posicio) {
                 Utils.moverPuntero(raf, posIndice);
                 Clients cli = new Clients();
                 leerCodigo(raf);
@@ -273,62 +271,92 @@ public class UF3_Prac4{
             posIndice = leerPosicionIndice(dis);
         }
     }
-    
-    private static int leerCodigoIndice(DataInputStream dis){
+
+    private static int leerCodigoIndice(DataInputStream dis) {
         int codi;
-        
+
         try {
             codi = dis.readInt();
         } catch (IOException ex) {
             codi = Integer.MIN_VALUE;
         }
-        
+
         return codi;
     }
-    
-    private static long leerPosicionIndice(DataInputStream dis){
+
+    private static long leerPosicionIndice(DataInputStream dis) {
         long posicion;
-        
+
         try {
             posicion = dis.readLong();
         } catch (IOException ex) {
             posicion = -1;
         }
-        
+
         return posicion;
     }
-    
-    private static void consultarClientCodi(){
+
+    private static void consultarClientCodi() {
         int codi = Utils.LlegirInt("Introdueix el codi del client: ");
         boolean trobat = false;
         DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_BIN, true);
         Clients cli = leerCodigo(dis);
         leerCliente(dis, cli);
-        while(cli != null && !trobat){
-            if(cli.codi == codi){
+        while (cli != null && !trobat) {
+            if (cli.codi == codi) {
                 mostrarDades(cli);
                 trobat = true;
-            }
-            else{
+            } else {
                 cli = leerCodigo(dis);
                 leerCliente(dis, cli);
             }
         }
     }
-    
-    private static void modificarClient(){
-        int codi = Utils.LlegirInt("Introdueix el codi del client: ");
-        
+
+    private static void codiDirecte() {
+        int codi = Utils.LlegirInt(DEMANAR_CODI);
+        DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_INDEX, true);
+        RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
+        try {
+            int codiBuscar = dis.readInt();
+            boolean trobat = false;
+            long posicio;
+            if (existeixClient(codi)) {
+                while (!trobat) {
+                    if (codiBuscar == codi) {
+                        trobat = true;
+                        posicio = dis.readLong();
+                        Utils.moverPuntero(raf, posicio);
+                        Clients cli;
+                        cli = leerCodigo(raf);
+                        leerCliente(raf, cli);
+                        mostrarDades(cli);
+                    } else {
+                        dis.readLong();
+                        codiBuscar = dis.readInt();
+                    }
+                }
+            } else {
+                System.out.println("No s'ha pogut trobar un client amb aquest codi");
+            }
+
+        } catch (IOException ex) {
+            Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static void modificarClient() {
+        int codi = Utils.LlegirInt(DEMANAR_CODI);
+
         DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_BIN, true);
         Clients cli = leerCodigo(dis);
         leerCliente(dis, cli);
-        while(cli != null){
-            if(cli.codi == codi){
+        while (cli != null) {
+            if (cli.codi == codi) {
                 mostrarDades(cli);
                 altaClient(NOM_FITX_TEMP);
-                
-            }
-            else{
+
+            } else {
                 afegirDades(cli, NOM_FITX_TEMP);
             }
             cli = leerCodigo(dis);
@@ -339,15 +367,15 @@ public class UF3_Prac4{
         Utils.RenombrarFichero(NOM_FITX_TEMP, NOM_FITX_BIN);
         Utils.BorrarFichero(NOM_FITX_TEMP);
     }
-    
-    private static void esborrarClient(){
-        int codi = Utils.LlegirInt("Introdueix el codi del client: ");
-        
+
+    private static void esborrarClient() {
+        int codi = Utils.LlegirInt(DEMANAR_CODI);
+
         DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_BIN, true);
         Clients cli = leerCodigo(dis);
         leerCliente(dis, cli);
-        while(cli != null){
-            if(cli.codi != codi){
+        while (cli != null) {
+            if (cli.codi != codi) {
                 afegirDades(cli, NOM_FITX_TEMP);
             }
             cli = leerCodigo(dis);
@@ -358,10 +386,64 @@ public class UF3_Prac4{
         Utils.RenombrarFichero(NOM_FITX_TEMP, NOM_FITX_BIN);
         Utils.BorrarFichero(NOM_FITX_TEMP);
     }
+
+    private static void modificarDirecte() {
+        int codi = Utils.LlegirInt(DEMANAR_CODI);
+        RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "rw");
+        if(existeixClient(codi)){
+            long posicio = buscarPosicion(codi);
+            Utils.moverPuntero(raf, posicio);
+            Clients cli = new Clients();
+            demanarDades(cli);
+            escriureClient(raf, cli);
+            try {
+                raf.close();
+            } catch (IOException ex) {
+                Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        else{
+            System.out.println("No s'ha trobat un client amb aquest codi");
+        }
+    }
     
-    private static Clients leerCodigo(RandomAccessFile raf){
+    private static void escriureClient(RandomAccessFile raf, Clients cli){
+        try {
+            raf.writeInt(cli.codi);
+            raf.writeUTF(cli.nom);
+            raf.writeUTF(cli.cognoms);
+            raf.writeInt(cli.diaNaixement);
+            raf.writeInt(cli.mesNaixement);
+            raf.writeInt(cli.anyNaixement);
+            raf.writeUTF(cli.adrecaPostal);
+            raf.writeUTF(cli.email);
+            raf.writeBoolean(cli.vip);
+        } catch (IOException ex) {
+            Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static long buscarPosicion(int codiBuscar) {
+        long posicio = -1;
+        DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_INDEX, true);
+        boolean trobat = false;
+        try {
+            while (!trobat) {
+                int codi = dis.readInt();
+                if (codi == codiBuscar) {
+                    posicio = dis.readLong();
+                    trobat = true;
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return posicio;
+    }
+
+    private static Clients leerCodigo(RandomAccessFile raf) {
         Clients cli = new Clients();
-        
+
         try {
             cli.codi = raf.readInt();
         } catch (IOException ex) {
@@ -369,10 +451,10 @@ public class UF3_Prac4{
         }
         return cli;
     }
-    
-    private static Clients leerCodigo(DataInputStream dis){
+
+    private static Clients leerCodigo(DataInputStream dis) {
         Clients cli = new Clients();
-        
+
         try {
             cli.codi = dis.readInt();
         } catch (IOException ex) {
@@ -380,8 +462,8 @@ public class UF3_Prac4{
         }
         return cli;
     }
-    
-    private static void leerCliente(RandomAccessFile raf, Clients cli){ 
+
+    private static void leerCliente(RandomAccessFile raf, Clients cli) {
         try {
             cli.nom = raf.readUTF();
             cli.cognoms = raf.readUTF();
@@ -395,8 +477,8 @@ public class UF3_Prac4{
             cli = null;
         }
     }
-    
-    private static void leerCliente(DataInputStream dis, Clients cli){ 
+
+    private static void leerCliente(DataInputStream dis, Clients cli) {
         try {
             cli.nom = dis.readUTF();
             cli.cognoms = dis.readUTF();
@@ -406,40 +488,43 @@ public class UF3_Prac4{
             cli.adrecaPostal = dis.readUTF();
             cli.email = dis.readUTF();
             cli.vip = dis.readBoolean();
-            
+
         } catch (IOException ex) {
             cli = null;
         }
     }
-    
-    private static void mostrarDades(Clients cli){
+
+    private static void mostrarDades(Clients cli) {
         System.out.println("Codi: " + cli.codi);
         System.out.println("Nom: " + cli.nom);
         System.out.println("Cognoms: " + cli.cognoms);
-        System.out.println("Data de Naixement (DD/MM/YYYY): " + cli.diaNaixement + "/" + 
-                cli.mesNaixement + "/" + cli.anyNaixement);
+        System.out.println("Data de Naixement (DD/MM/YYYY): " + cli.diaNaixement + "/"
+                + cli.mesNaixement + "/" + cli.anyNaixement);
         System.out.println("Adreça postal: " + cli.adrecaPostal);
         System.out.println("E-mail: " + cli.email);
         boolean vip = cli.vip;
         System.out.print("VIP: ");
-        if(vip) System.out.println("Si");
-        else System.out.println("No");
+        if (vip) {
+            System.out.println("Si");
+        } else {
+            System.out.println("No");
+        }
     }
-    
-    private static void llistarClients(){
+
+    private static void llistarClients() {
         DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_BIN, true);
         Clients cli = leerCodigo(dis);
         leerCliente(dis, cli);
         int contador = 1;
-        while(cli != null){
+        while (cli != null) {
             System.out.println("Client " + contador);
             mostrarDades(cli);
             ++contador;
             cli = leerCodigo(dis);
             leerCliente(dis, cli);
         }
-        
+
         Utils.CerrarFicheroBinario(dis);
     }
-    
+
 }
