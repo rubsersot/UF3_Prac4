@@ -47,6 +47,7 @@ public class UF3_Prac4 {
             switch (opcio) {
                 case 1:
                     altaClient(NOM_FITX_BIN);
+                    actualitzarIndex();
                     break;
                 case 2:
                     consultarClientPosicio();
@@ -56,9 +57,11 @@ public class UF3_Prac4 {
                     break;
                 case 4:
                     modificarClient();
+                    actualitzarIndex();
                     break;
                 case 5:
                     esborrarClient();
+                    actualitzarIndex();
                     break;
                 case 6:
                     llistarClients();
@@ -70,19 +73,21 @@ public class UF3_Prac4 {
                     codiDirecte();
                     break;
                 case 9:
-
+                    esborrarDirecte();
+                    actualitzarIndex();
                     break;
                 case 10:
                     modificarDirecte();
+                    actualitzarIndex();
                     break;
                 case 11:
-
+                    llistarPerCodi();
                     break;
                 default:
                     System.out.println("ERROR, opció no vàlida");
                     break;
             }
-            actualitzarIndex();
+            
             mostrarMenu();
             opcio = Utils.LlegirInt();
         }
@@ -408,29 +413,36 @@ public class UF3_Prac4 {
     }
 
     private static void esborrarDirecte() {
-        int codi = Utils.LlegirInt(DEMANAR_CODI);
-        RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "rw");
-        RandomAccessFile raf2 = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
-        if(existeixClient(codi)){
-            long posicio = buscarPosicion(codi);
-            Utils.moverPuntero(raf, posicio);
-            Utils.moverPuntero(raf2, posicio);
-            Clients cli = new Clients();
-            leerCliente(raf2, cli);
-            
-            leerCliente(raf2, cli);
-            while(cli != null){
-                
+        try {
+            int codi = Utils.LlegirInt(DEMANAR_CODI);
+            RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "rw");
+            RandomAccessFile raf2 = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
+            if(existeixClient(codi)){
+                long posicio = buscarPosicion(codi);
+                Utils.moverPuntero(raf, posicio);
+                Utils.moverPuntero(raf2, posicio);
+                //Saltem el client actual, el segon punter el volem un client avançat
+                Clients cli = leerCodigo(raf2);
                 leerCliente(raf2, cli);
+                
+                cli = leerCodigo(raf2);
+                leerCliente(raf2, cli);
+                while(cli != null){
+                    escriureClient(raf, cli);
+                    cli = leerCodigo(raf2);
+                    leerCliente(raf2, cli);
+                }
+                long pos_final = raf.getFilePointer();
+                raf.setLength(pos_final);
+                
             }
-            try {
-                raf.close();
-            } catch (IOException ex) {
-                Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
+            else{
+                System.out.println("No s'ha trobat un client amb aquest codi");
             }
-        }
-        else{
-            System.out.println("No s'ha trobat un client amb aquest codi");
+            raf.close();
+            raf2.close();
+        } catch (IOException ex) {
+            Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -552,6 +564,10 @@ public class UF3_Prac4 {
         }
 
         Utils.CerrarFicheroBinario(dis);
+    }
+    
+    private static void llistarPerCodi(){
+        
     }
 
 }
