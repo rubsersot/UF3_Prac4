@@ -87,7 +87,7 @@ public class UF3_Prac4 {
                     System.out.println("ERROR, opció no vàlida");
                     break;
             }
-            
+
             mostrarMenu();
             opcio = Utils.LlegirInt();
         }
@@ -391,11 +391,11 @@ public class UF3_Prac4 {
         Utils.RenombrarFichero(NOM_FITX_TEMP, NOM_FITX_BIN);
         Utils.BorrarFichero(NOM_FITX_TEMP);
     }
-    
+
     private static void modificarDirecte() {
         int codi = Utils.LlegirInt(DEMANAR_CODI);
         RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "rw");
-        if(existeixClient(codi)){
+        if (existeixClient(codi)) {
             long posicio = buscarPosicion(codi);
             Utils.moverPuntero(raf, posicio);
             Clients cli = new Clients();
@@ -406,8 +406,7 @@ public class UF3_Prac4 {
             } catch (IOException ex) {
                 Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }
-        else{
+        } else {
             System.out.println("No s'ha trobat un client amb aquest codi");
         }
     }
@@ -417,26 +416,25 @@ public class UF3_Prac4 {
             int codi = Utils.LlegirInt(DEMANAR_CODI);
             RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "rw");
             RandomAccessFile raf2 = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
-            if(existeixClient(codi)){
+            if (existeixClient(codi)) {
                 long posicio = buscarPosicion(codi);
                 Utils.moverPuntero(raf, posicio);
                 Utils.moverPuntero(raf2, posicio);
                 //Saltem el client actual, el segon punter el volem un client avançat
                 Clients cli = leerCodigo(raf2);
                 leerCliente(raf2, cli);
-                
+
                 cli = leerCodigo(raf2);
                 leerCliente(raf2, cli);
-                while(cli != null){
+                while (cli != null) {
                     escriureClient(raf, cli);
                     cli = leerCodigo(raf2);
                     leerCliente(raf2, cli);
                 }
                 long pos_final = raf.getFilePointer();
                 raf.setLength(pos_final);
-                
-            }
-            else{
+
+            } else {
                 System.out.println("No s'ha trobat un client amb aquest codi");
             }
             raf.close();
@@ -445,8 +443,8 @@ public class UF3_Prac4 {
             Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    private static void escriureClient(RandomAccessFile raf, Clients cli){
+
+    private static void escriureClient(RandomAccessFile raf, Clients cli) {
         try {
             raf.writeInt(cli.codi);
             raf.writeUTF(cli.nom);
@@ -565,8 +563,20 @@ public class UF3_Prac4 {
 
         Utils.CerrarFicheroBinario(dis);
     }
-    
-    private static void llistarPerCodi(){
+
+    private static void llistarPerCodi() throws IOException {     
+        int numClientes =;     
+        int[] codiClients = new int[numClientes];     
+        DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_BIN, true);
+        Clients cli = leerCodigo(dis);        
+        for (int i = 0; i < numClientes; i++) {
+            int codi = dis.readInt();
+            codiClients[i] = codi;
+            leerCliente(dis, cli);
+        }
+        Utils.bubbleSortVectInt(codiClients);    
+        Utils.CerrarFicheroBinario(dis);
+
         
     }
 
