@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -564,20 +566,28 @@ public class UF3_Prac4 {
         Utils.CerrarFicheroBinario(dis);
     }
 
-    private static void llistarPerCodi() throws IOException {     
-        int numClientes =;     
-        int[] codiClients = new int[numClientes];     
-        DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_BIN, true);
-        Clients cli = leerCodigo(dis);        
-        for (int i = 0; i < numClientes; i++) {
-            int codi = dis.readInt();
-            codiClients[i] = codi;
-            leerCliente(dis, cli);
+    private static void llistarPerCodi() {
+        try {
+            ArrayList<Integer> llista_codis = new ArrayList<>();
+            RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_INDEX, "r");
+            RandomAccessFile rafClients = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
+            
+            while(raf.getFilePointer() < raf.length()){
+                llista_codis.add(raf.readInt());
+                raf.readLong();
+            }
+            Collections.sort(llista_codis);
+            for(int i = 0; i < llista_codis.size(); ++i){
+                int codi = llista_codis.get(i);
+                long posicion = buscarPosicion(codi);
+                rafClients.seek(posicion);
+                Clients cli = leerCodigo(rafClients);
+                leerCliente(rafClients, cli);
+                mostrarDades(cli);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
-        Utils.bubbleSortVectInt(codiClients);    
-        Utils.CerrarFicheroBinario(dis);
-
-        
     }
 
 }
