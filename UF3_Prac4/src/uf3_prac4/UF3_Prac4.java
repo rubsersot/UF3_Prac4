@@ -4,8 +4,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -570,49 +568,48 @@ public class UF3_Prac4 {
     }
    
     private static void ordenarClients(){
-        RandomAccessFile rafIndex = Utils.AbrirAccesoDirecto(NOM_FITX_INDEX, "r");
-        RandomAccessFile rafOrdenat = Utils.AbrirAccesoDirecto(INDEX_ORDENAT, "rw");
-        RandomAccessFile rafTemporal = Utils.AbrirAccesoDirecto(INDEX_ORDENAT_TEMP, "rw");
+        DataInputStream disIndex = Utils.AbrirFicheroLecturaBinario(NOM_FITX_INDEX, true);
+        DataOutputStream dosOrdenat = Utils.AbrirFicheroEscrituraBinario(INDEX_ORDENAT, true, false);
         
         try {
-            //Escriure el primer index directament
-            int codi = rafIndex.readInt();
-            rafOrdenat.writeInt(codi);
-            long posicio = rafIndex.readLong();
-            rafOrdenat.writeLong(posicio);
-            while(rafIndex.getFilePointer() < rafIndex.length()){
-                codi = rafIndex.readInt();
-                posicio = rafIndex.readLong();
-                rafOrdenat.seek(0);
+            int codi = disIndex.readInt();
+            long posicio = disIndex.readLong();
+            dosOrdenat.writeInt(codi);
+            dosOrdenat.writeLong(posicio);
+            while(disIndex.available() > 0){
+                codi = disIndex.readInt();
+                posicio = disIndex.readLong();
+                DataInputStream disOrdenat = Utils.AbrirFicheroLecturaBinario(INDEX_ORDENAT, true);
+                DataOutputStream dosTemporal = Utils.AbrirFicheroEscrituraBinario(INDEX_ORDENAT_TEMP, true, true);
                 boolean trobat = false;
-                while(rafOrdenat.getFilePointer() < rafOrdenat.length()){
-                    int codiComparar = rafOrdenat.readInt();
+                while(disOrdenat.available() > 0){
+                    int codiComparar = disOrdenat.readInt();
                     if(codi < codiComparar && !trobat){
-                        rafTemporal.writeInt(codi);
-                        rafTemporal.writeLong(posicio);
+                        dosTemporal.writeInt(codi);
+                        dosTemporal.writeLong(posicio);
                         trobat = true;
                     }
-                    rafTemporal.writeInt(codiComparar);
-                    rafTemporal.writeDouble(rafOrdenat.readLong());
+                    
+                    dosTemporal.writeInt(codiComparar);
+                    dosTemporal.writeLong(disOrdenat.readLong());
                 }
                 if(!trobat){
-                    rafTemporal.writeInt(codi);
-                    rafTemporal.writeLong(posicio);
+                    dosTemporal.writeInt(codi);
+                    dosTemporal.writeLong(posicio);
                 }
-                rafOrdenat.seek(0);
-                rafTemporal.seek(0);
+                
+                Utils.CerrarFicheroBinario(dosTemporal);
+                Utils.CerrarFicheroBinario(disOrdenat);
                 Utils.BorrarFichero(INDEX_ORDENAT);
                 Utils.RenombrarFichero(INDEX_ORDENAT_TEMP, INDEX_ORDENAT);
-                Utils.BorrarFichero(INDEX_ORDENAT_TEMP);
+                
             }
-            Utils.cerrarAccesoDirecto(rafOrdenat);
-            Utils.cerrarAccesoDirecto(rafTemporal);
-            Utils.cerrarAccesoDirecto(rafIndex);
-           
+            Utils.CerrarFicheroBinario(dosOrdenat);
+            Utils.CerrarFicheroBinario(disIndex);
+            
         } catch (IOException ex) {
             Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
-       
     }
 
 }

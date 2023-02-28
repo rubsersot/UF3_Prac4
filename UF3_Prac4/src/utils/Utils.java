@@ -798,6 +798,8 @@ public class Utils {
     
     public static RandomAccessFile AbrirAccesoDirecto(String nomFitxer, String mode){
         RandomAccessFile raf = null;
+        
+        File f = AbrirFichero(nomFitxer, true);
         try {
             raf = new RandomAccessFile(nomFitxer, mode);
         } catch (FileNotFoundException ex) {
