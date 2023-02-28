@@ -814,6 +814,14 @@ public class Utils {
         }
     }
     
+    public static void cerrarAccesoDirecto(RandomAccessFile raf){
+        try {
+            raf.close();
+        } catch (IOException ex) {
+            Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     // <editor-fold>
     
 // </editor-fold>

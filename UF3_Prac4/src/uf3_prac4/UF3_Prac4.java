@@ -27,11 +27,14 @@ public class UF3_Prac4 {
     }
 
     public static Scanner scan = new Scanner(System.in);
-    static String NOM_FITX_BIN = "clients.bin";
-    static String NOM_FITX_TEMP = "temporal.bin";
-    static String NOM_FITX_INDEX = "clients_index.bin";
-    static String DEMANAR_POSICIO = "Introdueix la posició del client (pos inicial = 0): ";
-    static String DEMANAR_CODI = "Introdueix el codi: ";
+    static final String NOM_FITX_BIN = "clients.bin";
+    static final String NOM_FITX_TEMP = "temporal.bin";
+    static final String NOM_FITX_INDEX = "clients_index.bin";
+    static final String INDEX_ORDENAT = "clients_index_ordenat.bin";
+    static final String INDEX_ORDENAT_TEMP = "clients_index_ordenat_temp.bin";
+    static final String DEMANAR_POSICIO = "Introdueix la posició del client (pos inicial = 0): ";
+    static final String DEMANAR_CODI = "Introdueix el codi: ";
+    static final int LONG_REG = 12;
 
     public static void main(String[] args) {
         Utils.AbrirFichero(NOM_FITX_BIN, true);
@@ -83,6 +86,7 @@ public class UF3_Prac4 {
                     actualitzarIndex();
                     break;
                 case 11:
+                    ordenarClients();
                     llistarPerCodi();
                     break;
                 default:
@@ -131,6 +135,7 @@ public class UF3_Prac4 {
                 leerCliente(dis, cli);
             }
         }
+        Utils.CerrarFicheroBinario(dis);
         return existeix;
     }
 
@@ -168,7 +173,8 @@ public class UF3_Prac4 {
         } catch (IOException ex) {
             Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        Utils.CerrarFicheroBinario(dos);
+        Utils.cerrarAccesoDirecto(raf);
     }
 
     private static void leerResto(RandomAccessFile raf) {
@@ -253,54 +259,29 @@ public class UF3_Prac4 {
                 leerCliente(dis, cli);
             }
         }
+        Utils.CerrarFicheroBinario(dis);
     }
 
     private static void posicioDirecte() {
         int posicio = Utils.LlegirInt(DEMANAR_POSICIO);
-        DataInputStream dis = Utils.AbrirFicheroLecturaBinario(NOM_FITX_INDEX, true);
-        RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
-
-        int contador = 0;
-        boolean trobat = false;
-        leerCodigoIndice(dis);
-        long posIndice = leerPosicionIndice(dis);
-        while (!trobat && posIndice > -1) {
-            if (contador == posicio) {
-                Utils.moverPuntero(raf, posIndice);
-                Clients cli = new Clients();
-                leerCodigo(raf);
-                leerCliente(raf, cli);
-                mostrarDades(cli);
-                trobat = true;
-            }
-            ++contador;
-            leerCodigoIndice(dis);
-            posIndice = leerPosicionIndice(dis);
-        }
-    }
-
-    private static int leerCodigoIndice(DataInputStream dis) {
-        int codi;
-
+        RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_INDEX, "r");
         try {
-            codi = dis.readInt();
+            long posIndice = posicio * LONG_REG;
+            raf.seek(posIndice);
+            raf.readInt();
+            long posFinal = raf.readLong();
+           
+            RandomAccessFile raf2 = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
+            Utils.moverPuntero(raf2, posFinal);
+            Clients cli = leerCodigo(raf2);
+            leerCliente(raf2, cli);
+            mostrarDades(cli);
+           
+            Utils.cerrarAccesoDirecto(raf);
+            Utils.cerrarAccesoDirecto(raf2);
         } catch (IOException ex) {
-            codi = Integer.MIN_VALUE;
+            Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        return codi;
-    }
-
-    private static long leerPosicionIndice(DataInputStream dis) {
-        long posicion;
-
-        try {
-            posicion = dis.readLong();
-        } catch (IOException ex) {
-            posicion = -1;
-        }
-
-        return posicion;
     }
 
     private static void consultarClientCodi() {
@@ -318,6 +299,7 @@ public class UF3_Prac4 {
                 leerCliente(dis, cli);
             }
         }
+        Utils.CerrarFicheroBinario(dis);
     }
 
     private static void codiDirecte() {
@@ -350,6 +332,8 @@ public class UF3_Prac4 {
         } catch (IOException ex) {
             Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
+        Utils.CerrarFicheroBinario(dis);
+        Utils.cerrarAccesoDirecto(raf);
     }
 
     private static void modificarClient() {
@@ -373,6 +357,7 @@ public class UF3_Prac4 {
         Utils.BorrarFichero(NOM_FITX_BIN);
         Utils.RenombrarFichero(NOM_FITX_TEMP, NOM_FITX_BIN);
         Utils.BorrarFichero(NOM_FITX_TEMP);
+        Utils.CerrarFicheroBinario(dis);
     }
 
     private static void esborrarClient() {
@@ -392,6 +377,7 @@ public class UF3_Prac4 {
         Utils.BorrarFichero(NOM_FITX_BIN);
         Utils.RenombrarFichero(NOM_FITX_TEMP, NOM_FITX_BIN);
         Utils.BorrarFichero(NOM_FITX_TEMP);
+        Utils.CerrarFicheroBinario(dis);
     }
 
     private static void modificarDirecte() {
@@ -403,14 +389,11 @@ public class UF3_Prac4 {
             Clients cli = new Clients();
             demanarDades(cli);
             escriureClient(raf, cli);
-            try {
-                raf.close();
-            } catch (IOException ex) {
-                Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            Utils.cerrarAccesoDirecto(raf);
         } else {
             System.out.println("No s'ha trobat un client amb aquest codi");
         }
+        Utils.cerrarAccesoDirecto(raf);
     }
 
     private static void esborrarDirecte() {
@@ -439,8 +422,8 @@ public class UF3_Prac4 {
             } else {
                 System.out.println("No s'ha trobat un client amb aquest codi");
             }
-            raf.close();
-            raf2.close();
+            Utils.cerrarAccesoDirecto(raf);
+            Utils.cerrarAccesoDirecto(raf2);
         } catch (IOException ex) {
             Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -477,6 +460,8 @@ public class UF3_Prac4 {
         } catch (IOException ex) {
             Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
+        Utils.CerrarFicheroBinario(dis);
+       
         return posicio;
     }
 
@@ -567,27 +552,67 @@ public class UF3_Prac4 {
     }
 
     private static void llistarPerCodi() {
+       RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
+       DataInputStream dis = Utils.AbrirFicheroLecturaBinario(INDEX_ORDENAT, true);
         try {
-            ArrayList<Integer> llista_codis = new ArrayList<>();
-            RandomAccessFile raf = Utils.AbrirAccesoDirecto(NOM_FITX_INDEX, "r");
-            RandomAccessFile rafClients = Utils.AbrirAccesoDirecto(NOM_FITX_BIN, "r");
-            
-            while(raf.getFilePointer() < raf.length()){
-                llista_codis.add(raf.readInt());
-                raf.readLong();
-            }
-            Collections.sort(llista_codis);
-            for(int i = 0; i < llista_codis.size(); ++i){
-                int codi = llista_codis.get(i);
-                long posicion = buscarPosicion(codi);
-                rafClients.seek(posicion);
-                Clients cli = leerCodigo(rafClients);
-                leerCliente(rafClients, cli);
+            while(dis.available() > 0){
+                dis.readInt();
+                long posicio = dis.readLong();
+                raf.seek(posicio);
+                Clients cli = leerCodigo(raf);
+                leerCliente(raf, cli);
                 mostrarDades(cli);
             }
+            
         } catch (IOException ex) {
             Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+   
+    private static void ordenarClients(){
+        RandomAccessFile rafIndex = Utils.AbrirAccesoDirecto(NOM_FITX_INDEX, "r");
+        RandomAccessFile rafOrdenat = Utils.AbrirAccesoDirecto(INDEX_ORDENAT, "rw");
+        RandomAccessFile rafTemporal = Utils.AbrirAccesoDirecto(INDEX_ORDENAT_TEMP, "rw");
+        
+        try {
+            //Escriure el primer index directament
+            int codi = rafIndex.readInt();
+            rafOrdenat.writeInt(codi);
+            long posicio = rafIndex.readLong();
+            rafOrdenat.writeLong(posicio);
+            while(rafIndex.getFilePointer() < rafIndex.length()){
+                codi = rafIndex.readInt();
+                posicio = rafIndex.readLong();
+                rafOrdenat.seek(0);
+                boolean trobat = false;
+                while(rafOrdenat.getFilePointer() < rafOrdenat.length()){
+                    int codiComparar = rafOrdenat.readInt();
+                    if(codi < codiComparar && !trobat){
+                        rafTemporal.writeInt(codi);
+                        rafTemporal.writeLong(posicio);
+                        trobat = true;
+                    }
+                    rafTemporal.writeInt(codiComparar);
+                    rafTemporal.writeDouble(rafOrdenat.readLong());
+                }
+                if(!trobat){
+                    rafTemporal.writeInt(codi);
+                    rafTemporal.writeLong(posicio);
+                }
+                rafOrdenat.seek(0);
+                rafTemporal.seek(0);
+                Utils.BorrarFichero(INDEX_ORDENAT);
+                Utils.RenombrarFichero(INDEX_ORDENAT_TEMP, INDEX_ORDENAT);
+                Utils.BorrarFichero(INDEX_ORDENAT_TEMP);
+            }
+            Utils.cerrarAccesoDirecto(rafOrdenat);
+            Utils.cerrarAccesoDirecto(rafTemporal);
+            Utils.cerrarAccesoDirecto(rafIndex);
+           
+        } catch (IOException ex) {
+            Logger.getLogger(UF3_Prac4.class.getName()).log(Level.SEVERE, null, ex);
+        }
+       
     }
 
 }
